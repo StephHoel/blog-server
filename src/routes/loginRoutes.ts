@@ -54,8 +54,8 @@ export default async function loginRoutes(fastify: FastifyInstance) {
       if (!login) return reply.status(404).send({ message: 'Login not found' })
 
       return reply.status(200).send({ idLogin: login.idLogin })
-    } catch {
-      return reply.status(400).send({ message: 'FAIL: Login not found' })
+    } catch (err: any) {
+      return reply.status(400).send({ err, message: 'FAIL: Login not found' })
     }
   })
 
