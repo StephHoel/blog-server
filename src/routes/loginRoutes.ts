@@ -49,6 +49,8 @@ export default async function loginRoutes(fastify: FastifyInstance) {
         },
       })
 
+      console.log(login)
+
       if (!login) return reply.status(404).send({ message: 'Login not found' })
 
       return reply.status(200).send({ idLogin: login.idLogin })
