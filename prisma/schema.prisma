@@ -22,7 +22,7 @@ model Post {
   idPost    String   @id @default(uuid())
   idAuthor  String
   title     String
-  content   String
+  content   String   @db.Text
   state     State    @default(DRAFT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
