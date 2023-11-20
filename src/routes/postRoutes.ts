@@ -47,6 +47,34 @@ export default async function postRoutes(fastify: FastifyInstance) {
     }
   })
 
+  fastify.get('/post/state/:state', async (request, reply) => {
+    try {
+      const validatePostParams = z.object({
+        state: z.enum(['DRAFT', 'POST', 'DELETE']),
+      })
+
+      const validatePostHeader = z.object({
+        idauthor: z.string().trim(),
+      })
+
+      const { idauthor } = validatePostHeader.parse(request.headers)
+      const { state } = validatePostParams.parse(request.params)
+
+      const post = await prisma.post.findMany({
+        where: {
+          idAuthor: idauthor,
+          state,
+        },
+      })
+
+      if (!post) return reply.status(404).send({ message: 'Post not found' })
+
+      return reply.status(200).send(post)
+    } catch {
+      return reply.status(400).send({ message: 'FAIL: Post not found' })
+    }
+  })
+
   fastify.post('/post', async (request, reply) => {
     try {
       const validatePostHeader = z.object({
