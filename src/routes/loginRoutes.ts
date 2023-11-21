@@ -59,6 +59,38 @@ export default async function loginRoutes(fastify: FastifyInstance) {
     }
   })
 
+  fastify.post('/forgot/pass', async (request, reply) => {
+    try {
+      const validateLoginBody = z.object({
+        username: z.string().trim(),
+        email: z.string().trim(),
+      })
+
+      // recebe usuario e email
+      const { username, email } = validateLoginBody.parse(request.body)
+
+      // verifica se existe
+      const login = await prisma.login.findUnique({
+        where: {
+          username,
+          email,
+          deleted: false,
+        },
+      })
+
+      // console.log(login)
+
+      // se não, retorna 404
+      if (!login) return reply.status(404)
+
+      // se sim, retorna 204
+      return reply.status(204)
+    } catch {
+      // se erro, retorna 400
+      return reply.status(400)
+    }
+  })
+
   fastify.put('/login', async (request, reply) => {
     try {
       const validateLoginHeader = z.object({
