@@ -1,8 +1,20 @@
 import { FastifyInstance } from 'fastify'
+import nodemailer from 'nodemailer'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma'
 
 export default async function loginRoutes(fastify: FastifyInstance) {
+  // Configurações de envio de email (exemplo com SMTP)
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL,
+      pass: process.env.PASS,
+    },
+  })
+
   fastify.post('/register', async (request, reply) => {
     try {
       const validatePostBody = z.object({
@@ -59,7 +71,7 @@ export default async function loginRoutes(fastify: FastifyInstance) {
     }
   })
 
-  fastify.post('/forgot/pass', async (request, reply) => {
+  fastify.post('/forgot-pass', async (request, reply) => {
     try {
       const validateLoginBody = z.object({
         username: z.string().trim(),
@@ -82,12 +94,76 @@ export default async function loginRoutes(fastify: FastifyInstance) {
 
       // se não, retorna 404
       if (!login) return reply.status(404)
+      else {
+        const token = login.idLogin
 
-      // se sim, retorna 204
-      return reply.status(204)
+        // Enviar email
+        const info = await transporter.sendMail({
+          from: `Steph Hoel Blog <${process.env.EMAIL}>`,
+          to: email,
+
+          subject: 'Recuperação de Senha',
+          text: `Olá,
+  
+          Você solicitou uma nova senha em nosso site. Se foi você, clique no link abaixo para criar uma senha diferente:
+          
+          https://stephhoel.github.io/blog/reset-pass/${token}
+          
+          Se não foi você, não se preocupe. Sua senha atual não mudará.
+          
+          Obrigado por usar nosso site.
+          
+          Equipe do Blog`,
+          html: `<div>
+          <p>Olá,</p>
+          <p>Você solicitou uma nova senha em nosso site. Se foi você, clique no link abaixo para criar uma senha diferente:</p>
+          <p>https://stephhoel.github.io/blog/reset-pass/${token}</p>
+          <p>Se não foi você, não se preocupe. Sua senha atual não mudará.</p>
+          <p>Obrigado por usar nosso site.</p>
+          <p>Equipe do Blog</p>
+        </div>`,
+        })
+
+        // se sim, retorna 204
+        return reply.status(204) // .send({ info })
+      }
     } catch {
-      // se erro, retorna 400
-      return reply.status(400)
+      // se erro, retorna 500
+      return reply.status(500).send({
+        message: 'Erro ao enviar email.',
+      })
+    }
+  })
+
+  fastify.post('/reset-pass/:token', async (request, reply) => {
+    try {
+      const validateBody = z.object({
+        password: z.string().trim(),
+      })
+
+      const validateParams = z.object({
+        token: z.string().trim(),
+      })
+
+      const { token } = validateParams.parse(request.params)
+      const { password } = validateBody.parse(request.body)
+
+      const update = await prisma.login.update({
+        where: {
+          idLogin: token,
+          deleted: false,
+        },
+        data: {
+          password,
+        },
+      })
+
+      if (update) {
+        reply.status(200).send({ message: 'Senha alterada com sucesso!' })
+      }
+    } catch (error) {
+      console.error('Erro ao alterar a senha:', error)
+      reply.status(500).send({ error: 'Erro ao alterar a senha' })
     }
   })
 
