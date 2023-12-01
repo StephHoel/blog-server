@@ -29,7 +29,7 @@ export default async function postRoutes(fastify: FastifyInstance) {
     }
   })
 
-  fastify.get('/post/:number', async (request, reply) => {
+  fastify.get('/post/get/:number', async (request, reply) => {
     try {
       const validatePostParams = z.object({
         number: z.number(),
