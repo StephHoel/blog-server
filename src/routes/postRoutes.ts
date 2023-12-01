@@ -32,15 +32,15 @@ export default async function postRoutes(fastify: FastifyInstance) {
   fastify.get('/post/get/:number', async (request, reply) => {
     try {
       const validatePostParams = z.object({
-        number: z.number(),
+        number: z.string().trim(),
       })
 
-      let { number } = validatePostParams.parse(request.params)
+      const { number } = validatePostParams.parse(request.params)
 
-      if (number === undefined) number = 0
+      let n = 0
+      if (number !== undefined) n = Number.parseInt(number)
 
       const posts = await prisma.post.findMany({
-        take: number, // Número máximo de registros a serem recuperados
         where: {
           state: 'POST',
         },
@@ -54,6 +54,7 @@ export default async function postRoutes(fastify: FastifyInstance) {
         orderBy: {
           createdAt: 'desc',
         },
+        take: n, // Número máximo de registros a serem recuperados
       })
 
       if (!posts) return reply.status(404).send({ message: 'Posts not found' })
