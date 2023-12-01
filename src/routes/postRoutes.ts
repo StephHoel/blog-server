@@ -85,8 +85,8 @@ export default async function postRoutes(fastify: FastifyInstance) {
       if (!posts) return reply.status(404).send({ message: 'Posts not found' })
 
       return reply.status(200).send(posts)
-    } catch {
-      return reply.status(400).send({ message: 'FAIL: Posts not found' })
+    } catch (e) {
+      return reply.status(400).send({ message: 'FAIL: Posts not found | ' + e })
     }
   })
 
