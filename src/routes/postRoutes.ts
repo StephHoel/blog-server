@@ -9,6 +9,48 @@ export default async function postRoutes(fastify: FastifyInstance) {
         where: {
           state: 'POST',
         },
+        include: {
+          author: {
+            select: {
+              username: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      })
+
+      if (!posts) return reply.status(404).send({ message: 'Posts not found' })
+
+      return reply.status(200).send(posts)
+    } catch {
+      return reply.status(400).send({ message: 'FAIL: Posts not found' })
+    }
+  })
+
+  fastify.get('/post/:number', async (request, reply) => {
+    try {
+      const validatePostParams = z.object({
+        number: z.number(),
+      })
+
+      let { number } = validatePostParams.parse(request.params)
+
+      if (number === undefined) number = 0
+
+      const posts = await prisma.post.findMany({
+        take: number, // Número máximo de registros a serem recuperados
+        where: {
+          state: 'POST',
+        },
+        include: {
+          author: {
+            select: {
+              username: true,
+            },
+          },
+        },
         orderBy: {
           createdAt: 'desc',
         },
