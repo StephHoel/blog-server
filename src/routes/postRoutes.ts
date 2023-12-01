@@ -66,6 +66,7 @@ export default async function postRoutes(fastify: FastifyInstance) {
       if (number !== undefined) n = Number.parseInt(number)
 
       const posts = await prisma.post.findMany({
+        take: n, // Número máximo de registros a serem recuperados
         where: {
           state: 'POST',
         },
@@ -79,7 +80,6 @@ export default async function postRoutes(fastify: FastifyInstance) {
         orderBy: {
           createdAt: 'desc',
         },
-        take: n, // Número máximo de registros a serem recuperados
       })
 
       if (!posts) return reply.status(404).send({ message: 'Posts not found' })
