@@ -29,7 +29,32 @@ export default async function postRoutes(fastify: FastifyInstance) {
     }
   })
 
-  fastify.get('/post/get/:number', async (request, reply) => {
+  fastify.get('/post/:idPost', async (request, reply) => {
+    try {
+      const validatePostParams = z.object({
+        idPost: z.string().trim(),
+      })
+
+      const { idPost } = validatePostParams.parse(request.params)
+
+      const post = await prisma.post.findMany({
+        where: {
+          idPost,
+          state: {
+            not: 'DELETE',
+          },
+        },
+      })
+
+      if (!post) return reply.status(404).send({ message: 'Post not found' })
+
+      return reply.status(200).send(post)
+    } catch {
+      return reply.status(400).send({ message: 'FAIL: Post not found' })
+    }
+  })
+
+  fastify.get('/posts/:number', async (request, reply) => {
     try {
       const validatePostParams = z.object({
         number: z.string().trim(),
@@ -62,31 +87,6 @@ export default async function postRoutes(fastify: FastifyInstance) {
       return reply.status(200).send(posts)
     } catch {
       return reply.status(400).send({ message: 'FAIL: Posts not found' })
-    }
-  })
-
-  fastify.get('/post/:idPost', async (request, reply) => {
-    try {
-      const validatePostParams = z.object({
-        idPost: z.string().trim(),
-      })
-
-      const { idPost } = validatePostParams.parse(request.params)
-
-      const post = await prisma.post.findMany({
-        where: {
-          idPost,
-          state: {
-            not: 'DELETE',
-          },
-        },
-      })
-
-      if (!post) return reply.status(404).send({ message: 'Post not found' })
-
-      return reply.status(200).send(post)
-    } catch {
-      return reply.status(400).send({ message: 'FAIL: Post not found' })
     }
   })
 
