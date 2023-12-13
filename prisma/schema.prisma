@@ -8,6 +8,7 @@ datasource db {
   relationMode = "prisma"
 }
 
+// FOR BLOG
 model Login {
   idLogin   String   @id @default(uuid())
   email     String   @unique
@@ -36,4 +37,29 @@ enum State {
   DRAFT
   POST
   DELETE
+}
+
+// FOR LISTA DE COMPRAS
+model User {
+  idUser    String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  items Items[]
+}
+
+model Items {
+  idItem    String   @id @default(uuid())
+  idUser    String
+  item      String
+  qtd       Float
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  user User @relation(fields: [idUser], references: [idUser])
+
+  @@index([idUser])
 }
