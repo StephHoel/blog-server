@@ -17,6 +17,7 @@ async function bootstrap() {
 
   await fastify.register(postRoutes)
   await fastify.register(loginRoutes)
+  await fastify.register(loginRoutes)
 
   await fastify.listen({
     port: 3333,
